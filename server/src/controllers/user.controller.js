@@ -50,8 +50,8 @@ export const googleAuthCallback = async(req, res) => {
     const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success/verify`;
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure:false,  // Set to true in production
-        sameSite: "lax",      // REQUIRED for cross-site
+        secure:true,  // Set to true in production
+        sameSite: "none",      // REQUIRED for cross-site
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
     res.redirect(redirectUrl);
