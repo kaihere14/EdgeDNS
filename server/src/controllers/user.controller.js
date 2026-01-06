@@ -107,6 +107,10 @@ export const verifyUser = async (req,res) => {
 
 
 export const logoutUser = (req, res) => {
-    res.clearCookie("accessToken")
+    res.clearCookie("accessToken",{
+        httpOnly: true,
+        secure:true,  // Set to true in production
+        sameSite: "none",      // REQUIRED for cross-site
+    })
     res.status(200).json({ message: "Logged out successfully" });
 };
