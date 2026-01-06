@@ -122,6 +122,16 @@ const Dashboard = () => {
     setIsSubmitting(true);
     setSubmitMessage(null);
 
+    // Validate subdomain ends with .pawpick.store
+    if (!formData.subdomain.endsWith(".pawpick.store")) {
+      setSubmitMessage({
+        type: "error",
+        text: "Subdomain must end with .pawpick.store",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const payload = {
         subdomain: formData.subdomain,
@@ -430,12 +440,14 @@ const Dashboard = () => {
                     name="subdomain"
                     value={formData.subdomain}
                     onChange={handleInputChange}
-                    placeholder="api.example.com"
+                    placeholder="api.pawpick.store"
+                    pattern=".*\.pawpick\.store$"
+                    title="Subdomain must end with .pawpick.store"
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Enter the full subdomain (e.g., api.example.com)
+                    Must end with .pawpick.store (e.g., api.pawpick.store)
                   </p>
                 </div>
 
@@ -456,10 +468,7 @@ const Dashboard = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
                   >
                     <option value="A">A - IPv4 Address</option>
-                    <option value="AAAA">AAAA - IPv6 Address</option>
                     <option value="CNAME">CNAME - Canonical Name</option>
-                    <option value="TXT">TXT - Text Record</option>
-                    <option value="MX">MX - Mail Exchange</option>
                   </select>
                 </div>
 
