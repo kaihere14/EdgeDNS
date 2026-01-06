@@ -11,9 +11,9 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img 
-                src="https://res.cloudinary.com/dw87upoot/image/upload/v1767712233/ada_miqcsz.png" 
-                alt="Logo" 
+              <img
+                src="https://res.cloudinary.com/dw87upoot/image/upload/v1767712233/ada_miqcsz.png"
+                alt="Logo"
                 className="h-8 w-auto object-contain"
               />
               <span className="font-black text-xl text-gray-900">EdgeDNS</span>
