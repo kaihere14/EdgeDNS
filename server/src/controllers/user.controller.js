@@ -1,0 +1,112 @@
+
+import axios from "axios";
+import jwt from "jsonwebtoken";
+import { prisma } from "../db/sqlDB.js";
+
+
+
+export const generateToken = (userId) => {
+    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET , { expiresIn: '7d' });
+    return { accessToken };
+}
+
+
+export const googleAuthRedirect = (req, res ) => {
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL;
+    console.log("Redirect URI:", redirectUri);
+    const scope = [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email'
+    ].join(' ');
+   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${googleClientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent&include_granted_scopes=true`;
+    res.redirect(authUrl);
+}
+
+export const googleAuthCallback = async(req, res) => {
+    const authCode = req.query.code;
+     try {
+            const tokenRes = await axios.post(
+    "https://oauth2.googleapis.com/token",
+    {
+        code: authCode,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+        grant_type: "authorization_code",
+    },
+    { headers: { "Content-Type": "application/json" } }
+    );
+
+    const { access_token, id_token } = tokenRes.data;
+
+    const userInfoRes = await axios.get(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        { headers: { Authorization: `Bearer ${access_token}` } }
+    );
+
+    const userInfo = userInfoRes.data;
+    const { user, accessToken, message } = await createOAuthUser(userInfo);
+    const redirectUrl = `${process.env.FRONTEND_URL}/oauth-success/verify`;
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure:false,  // Set to true in production
+        sameSite: "lax",      // REQUIRED for cross-site
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    res.redirect(redirectUrl);
+    } catch (error) {
+        res.status(500).json({ message: "Error during Google OAuth callback", error });
+    }
+}
+
+
+export const createOAuthUser = async (profile) => {
+    try {
+       let user = await prisma.user.findUnique({ where: { email: profile.email } });
+       let message = "";
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    name: profile.name,
+                    email: profile.email,
+                    authProvider: "google",
+                    profilePicture: profile.picture,
+                },
+            });
+            message = "User created successfully";
+        }
+        
+        const { accessToken } = generateToken(user.id.toString());
+        return { user, accessToken, message};
+      }
+     catch (error) {
+        console.error("oauth_user_creation_failed", {
+            email: profile.email,
+            provider: "google",
+            error: error.message,
+            stack: error.stack,
+        });
+        throw error;
+    }
+};
+
+
+export const verifyUser = async (req,res) => {
+    const userId = req.userId;
+    try {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ user });
+    } catch (error) {
+        res.status(500).json({ message: "Error verifying user", error });
+    }
+};
+
+
+export const logoutUser = (req, res) => {
+    res.clearCookie("accessToken")
+    res.status(200).json({ message: "Logged out successfully" });
+};
