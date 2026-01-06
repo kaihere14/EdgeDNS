@@ -233,9 +233,11 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                <span className="text-lg font-black text-white">ED</span>
-              </div>
+              <img 
+                src="https://res.cloudinary.com/dw87upoot/image/upload/v1767712233/ada_miqcsz.png" 
+                alt="Logo" 
+                className="h-10 w-auto object-contain"
+              />
               <span className="text-xl font-bold text-gray-900">EdgeDNS</span>
             </div>
             <div className="flex items-center gap-4">
